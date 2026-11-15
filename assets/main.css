@@ -49,3 +49,4 @@ td a{color:var(--accent)}
 .chart .grid{stroke:var(--line)}
 .chart .series{fill:none;stroke:var(--accent);stroke-width:2}
 .chart .dot{fill:var(--accent)}
+.inner{padding:1rem 1.25rem}

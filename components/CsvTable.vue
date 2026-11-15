@@ -14,11 +14,12 @@ const q = ref('')
 const sortKey = ref<string | null>(null)
 const asc = ref(true)
 const page = ref(0)
-const modal = ref<{ type: 'report' | 'history'; url: string; file?: string } | null>(null)
+const modal = ref<{ type: 'report' | 'history' | 'details'; url: string; file?: string } | null>(null)
 
 const isUrl = (v: unknown) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(v.trim())
 const urlOf = (r: any) => (data.value?.urlCol ? String(r[data.value.urlCol] ?? '').trim() : '')
 const pointsOf = (r: any) => data.value?.history?.points[urlOf(r)] as { t: string; v: number }[] | undefined
+const rowsOf = (r: any) => data.value?.details?.byUrl[urlOf(r)] as Record<string, string>[] | undefined
 
 const filtered = computed(() => {
   let rows: any[] = data.value?.rows ?? []
@@ -64,6 +65,7 @@ function sortBy(col: string) {
               </th>
               <th v-if="data.hasReports"><span class="th-plain">Rapport</span></th>
               <th v-if="data.history"><span class="th-plain">Historique</span></th>
+              <th v-if="data.details"><span class="th-plain">Détails</span></th>
             </tr>
           </thead>
           <tbody>
@@ -77,6 +79,9 @@ function sortBy(col: string) {
               </td>
               <td v-if="data.history">
                 <button v-if="pointsOf(r)?.length" class="tab sm" @click="modal = { type: 'history', url: urlOf(r) }">Détail</button>
+              </td>
+              <td v-if="data.details">
+                <button v-if="rowsOf(r)?.length" class="tab sm" @click="modal = { type: 'details', url: urlOf(r) }">Détail</button>
               </td>
             </tr>
           </tbody>
@@ -96,7 +101,12 @@ function sortBy(col: string) {
         sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
         title="Rapport"
       />
-      <HistoryChart v-else-if="data?.history?.points[modal.url]" :points="data.history.points[modal.url]" :label="HISTORY_LABEL" />
+      <SimpleTable
+        v-else-if="modal.type === 'details' && data?.details?.byUrl[modal.url]"
+        :columns="data.details.columns"
+        :rows="data.details.byUrl[modal.url]"
+      />
+      <HistoryChart v-else-if="modal.type === 'history' && data?.history?.points[modal.url]" :points="data.history.points[modal.url]" :label="HISTORY_LABEL" />
     </AppModal>
   </section>
 </template>

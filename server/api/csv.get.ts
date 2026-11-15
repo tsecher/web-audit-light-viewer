@@ -52,9 +52,26 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  // Détails : <nom>_details.csv, groupé par URL
+  let details: { columns: string[]; byUrl: Record<string, Record<string, string>[]> } | null = null
+  const detText = await read(file.replace(/\.csv$/i, '_details.csv'))
+  if (detText !== null) {
+    const d = parse(detText)
+    const dc = d.meta.fields ?? []
+    const du = findUrlColumn(dc, d.data)
+    if (du) {
+      const byUrl: Record<string, Record<string, string>[]> = {}
+      for (const r of d.data) {
+        const u = r[du]?.trim()
+        if (u) (byUrl[u] ||= []).push(r)
+      }
+      details = { columns: dc, byUrl }
+    }
+  }
+
   const rows = parsed.data.slice(0, MAX_ROWS).map((r) => {
     const rep = urlCol ? matchReport(r[urlCol], byKey) : undefined
     return rep ? { ...r, __report: rep } : r
   })
-  return { columns, urlCol, rows, total: parsed.data.length, truncated: parsed.data.length > MAX_ROWS, hasReports: reportFiles.length > 0, history }
+  return { columns, urlCol, rows, total: parsed.data.length, truncated: parsed.data.length > MAX_ROWS, hasReports: reportFiles.length > 0, history, details }
 })

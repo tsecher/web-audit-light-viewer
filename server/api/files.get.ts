@@ -36,7 +36,7 @@ export default defineEventHandler(async () => {
   const files: Entry[] = []
   await walk(root, root, files)
   const all = new Set(files.map((f) => f.path))
-  const shown = files.filter((f) => !(/_history\.csv$/i.test(f.path) && all.has(f.path.replace(/_history\.csv$/i, '.csv'))))
+  const shown = files.filter((f) => !(/_(history|details)\.csv$/i.test(f.path) && all.has(f.path.replace(/_(history|details)\.csv$/i, '.csv'))))
   shown.sort((a, b) => a.path.localeCompare(b.path))
   return { root, files: shown }
 })

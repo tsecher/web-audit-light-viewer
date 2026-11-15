@@ -1,0 +1,16 @@
+# Production : docker compose up -d --build
+# La configuration vient du fichier .env (CSV_DIR, PORT, WATCH_POLLING)
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      CSV_DIR: /csv
+      PORT: "3000"
+      WATCH_POLLING: "${WATCH_POLLING:-true}"
+    volumes:
+      - ${CSV_DIR:?Renseigne CSV_DIR dans le fichier .env}:/csv:ro
+    restart: unless-stopped

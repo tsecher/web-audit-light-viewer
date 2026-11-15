@@ -29,6 +29,8 @@ export function watchDir(root: string) {
   if (!root) return
   watcher = chokidar.watch(root, {
     ignoreInitial: true,
+    usePolling: process.env.WATCH_POLLING === 'true',
+    interval: 1000,
     // attend la fin de l'écriture pour ne pas lire un fichier à moitié écrit
     awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
     ignored: (p: string) => relative(root, p).split(sep).some((s) => s.startsWith('.') || s === 'node_modules')
