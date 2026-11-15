@@ -16,6 +16,9 @@ declare module "nitropack/types" {
     '/api/files': {
       'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/files.get').default>>>>
     }
+    '/api/report': {
+      'get': Simplify<Serialize<Awaited<ReturnType<typeof import('../../server/api/report.get').default>>>>
+    }
     '/__nuxt_error': {
       'default': Simplify<Serialize<Awaited<ReturnType<typeof import('../../node_modules/.pnpm/@nuxt+nitro-server@3.21.11_bare-buffer@3.7.1_db0@0.3.4_esbuild@0.28.2_ioredis@5.11.1_su_7d6f0af76f8059d73fa2b3b34ac0e019/node_modules/@nuxt/nitro-server/dist/runtime/handlers/renderer').default>>>>
     }

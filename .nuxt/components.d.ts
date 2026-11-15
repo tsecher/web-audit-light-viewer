@@ -14,7 +14,9 @@ type HydrationStrategies = {
 type LazyComponent<T> = DefineComponent<HydrationStrategies, {}, {}, {}, {}, {}, {}, { hydrated: () => void }> & T
 
 
+export const AppModal: typeof import("../components/AppModal.vue")['default']
 export const CsvTable: typeof import("../components/CsvTable.vue")['default']
+export const HistoryChart: typeof import("../components/HistoryChart.vue")['default']
 export const NuxtWelcome: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/welcome.vue")['default']
 export const NuxtLayout: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/nuxt-layout")['default']
 export const NuxtErrorBoundary: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']
@@ -38,7 +40,9 @@ export const Head: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-projec
 export const Html: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/head/runtime/components")['Html']
 export const Body: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/head/runtime/components")['Body']
 export const NuxtIsland: typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/nuxt-island")['default']
+export const LazyAppModal: LazyComponent<typeof import("../components/AppModal.vue")['default']>
 export const LazyCsvTable: LazyComponent<typeof import("../components/CsvTable.vue")['default']>
+export const LazyHistoryChart: LazyComponent<typeof import("../components/HistoryChart.vue")['default']>
 export const LazyNuxtWelcome: LazyComponent<typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/welcome.vue")['default']>
 export const LazyNuxtLayout: LazyComponent<typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/nuxt-layout")['default']>
 export const LazyNuxtErrorBoundary: LazyComponent<typeof import("../node_modules/.pnpm/nuxt@3.21.11_@oxc-project+types@0.143.0_@types+node@26.6.6_@vue+compiler-sfc@3.5.45_bar_48f18cfe1ccf0820949296b5f64ac539/node_modules/nuxt/dist/app/components/nuxt-error-boundary.vue")['default']>

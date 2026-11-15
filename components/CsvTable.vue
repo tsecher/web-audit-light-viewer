@@ -1,20 +1,30 @@
 <script setup lang="ts">
 const props = defineProps<{ path: string }>()
 const PER_PAGE = 100
+const HISTORY_LABEL = 'Task Duration without dev tools (cumulated)'
 
-const { data, pending, error, refresh } = useFetch('/api/csv', { query: { path: props.path }, lazy: true })
+const { data, pending, error, refresh } = useFetch<any>('/api/csv', { query: { path: props.path }, lazy: true })
 const live = useLive()
-watch(() => live.value.n, () => { if (live.value.paths.includes(props.path)) refresh() })
+watch(() => live.value.n, () => {
+  const dir = props.path.slice(0, props.path.lastIndexOf('/') + 1)
+  if (live.value.paths.some((p) => p.startsWith(dir))) refresh()
+})
 
 const q = ref('')
 const sortKey = ref<string | null>(null)
 const asc = ref(true)
 const page = ref(0)
+const modal = ref<{ type: 'report' | 'history'; url: string; file?: string } | null>(null)
+
+const isUrl = (v: unknown) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(v.trim())
+const urlOf = (r: any) => (data.value?.urlCol ? String(r[data.value.urlCol] ?? '').trim() : '')
+const pointsOf = (r: any) => data.value?.history?.points[urlOf(r)] as { t: string; v: number }[] | undefined
 
 const filtered = computed(() => {
-  let rows = data.value?.rows ?? []
+  let rows: any[] = data.value?.rows ?? []
+  const cols: string[] = data.value?.columns ?? []
   const s = q.value.trim().toLowerCase()
-  if (s) rows = rows.filter((r) => Object.values(r).some((v) => String(v).toLowerCase().includes(s)))
+  if (s) rows = rows.filter((r) => cols.some((c) => String(r[c] ?? '').toLowerCase().includes(s)))
   const k = sortKey.value
   if (k) {
     const d = asc.value ? 1 : -1
@@ -52,11 +62,22 @@ function sortBy(col: string) {
               <th v-for="c in data.columns" :key="c" :aria-sort="sortKey === c ? (asc ? 'ascending' : 'descending') : 'none'">
                 <button @click="sortBy(c)">{{ c }}<span v-if="sortKey === c">{{ asc ? ' ↑' : ' ↓' }}</span></button>
               </th>
+              <th v-if="data.hasReports"><span class="th-plain">Rapport</span></th>
+              <th v-if="data.history"><span class="th-plain">Historique</span></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(r, i) in visible" :key="i">
-              <td v-for="c in data.columns" :key="c">{{ r[c] }}</td>
+              <td v-for="c in data.columns" :key="c">
+                <a v-if="isUrl(r[c])" :href="r[c].trim()" target="_blank" rel="noopener noreferrer">{{ r[c] }}</a>
+                <template v-else>{{ r[c] }}</template>
+              </td>
+              <td v-if="data.hasReports">
+                <button v-if="r.__report" class="tab sm" @click="modal = { type: 'report', url: urlOf(r), file: r.__report }">Détail</button>
+              </td>
+              <td v-if="data.history">
+                <button v-if="pointsOf(r)?.length" class="tab sm" @click="modal = { type: 'history', url: urlOf(r) }">Détail</button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -67,5 +88,15 @@ function sortBy(col: string) {
         <button class="tab" :disabled="page >= pages - 1" @click="page++">Suivant</button>
       </div>
     </template>
+
+    <AppModal v-if="modal" :title="modal.url" @close="modal = null">
+      <iframe
+        v-if="modal.type === 'report'"
+        :src="`/api/report?path=${encodeURIComponent(path)}&file=${encodeURIComponent(modal.file!)}`"
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"
+        title="Rapport"
+      />
+      <HistoryChart v-else-if="data?.history?.points[modal.url]" :points="data.history.points[modal.url]" :label="HISTORY_LABEL" />
+    </AppModal>
   </section>
 </template>

@@ -1,5 +1,5 @@
 import process from 'node:process';globalThis._importMeta_={url:import.meta.url,env:process.env};import { tmpdir } from 'node:os';
-import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getQuery as getQuery$1, getRequestWebStream, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, readBody, createEventStream, getResponseStatusText } from 'file:///Users/thomassecher/Sites/dev/web-audit/csv-viewer/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs';
+import { defineEventHandler, handleCacheHeaders, splitCookiesString, createEvent, fetchWithEvent, isEvent, eventHandler, setHeaders, createError, sendRedirect, proxyRequest, getRequestHeader, setResponseHeaders, setResponseStatus, send, getRequestHeaders, setResponseHeader, appendResponseHeader, getRequestURL, getResponseHeader, removeResponseHeader, getQuery as getQuery$1, getRequestWebStream, createApp, createRouter as createRouter$1, toNodeListener, lazyEventHandler, getResponseStatus, getRouterParam, readBody, createEventStream, setHeader, getResponseStatusText } from 'file:///Users/thomassecher/Sites/dev/web-audit/csv-viewer/node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index.mjs';
 import { Server } from 'node:http';
 import { resolve, join, dirname, relative, sep } from 'node:path';
 import crypto$1 from 'node:crypto';
@@ -3075,6 +3075,7 @@ const _lazy_WPrYns = () => Promise.resolve().then(function () { return config_po
 const _lazy_jV_e23 = () => Promise.resolve().then(function () { return csv_get$1; });
 const _lazy_kzJUlZ = () => Promise.resolve().then(function () { return events_get$1; });
 const _lazy_Mbm_D7 = () => Promise.resolve().then(function () { return files_get$1; });
+const _lazy_hnJiq1 = () => Promise.resolve().then(function () { return report_get$1; });
 const _lazy_H5ZMu2 = () => Promise.resolve().then(function () { return renderer; });
 
 const handlers = [
@@ -3084,6 +3085,7 @@ const handlers = [
   { route: '/api/csv', handler: _lazy_jV_e23, lazy: true, middleware: false, method: "get" },
   { route: '/api/events', handler: _lazy_kzJUlZ, lazy: true, middleware: false, method: "get" },
   { route: '/api/files', handler: _lazy_Mbm_D7, lazy: true, middleware: false, method: "get" },
+  { route: '/api/report', handler: _lazy_hnJiq1, lazy: true, middleware: false, method: "get" },
   { route: '/__nuxt_error', handler: _lazy_H5ZMu2, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: handler$1, lazy: false, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_H5ZMu2, lazy: true, middleware: false, method: undefined }
@@ -3470,7 +3472,7 @@ let current = "";
 const pending = /* @__PURE__ */ new Set();
 let timer = null;
 function queue(root, file) {
-  if (!file.toLowerCase().endsWith(".csv")) return;
+  if (!/\.(csv|html)$/i.test(file)) return;
   pending.add(relative(root, file));
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => {
@@ -3509,32 +3511,85 @@ const config_post$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.definePrope
   default: config_post
 }, Symbol.toStringTag, { value: 'Module' }));
 
-const MAX_ROWS = 2e4;
-const csv_get = defineEventHandler(async (event) => {
+function normKey(s) {
+  let d = s;
+  try {
+    d = decodeURIComponent(s);
+  } catch {
+  }
+  return d.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+function findUrlColumn(cols, rows) {
+  var _a, _b;
+  const by = (re) => cols.find((c) => re.test(c.trim()));
+  return (_b = (_a = by(/^url$/i)) != null ? _a : by(/url|address|adresse/i)) != null ? _b : cols.find((c) => rows.slice(0, 20).some((r) => {
+    var _a2;
+    return /^https?:\/\//i.test((_a2 = r[c]) != null ? _a2 : "");
+  }));
+}
+function matchReport(url, byKey) {
   var _a;
+  if (!url) return;
+  let u;
+  try {
+    u = new URL(url.trim());
+  } catch {
+    return;
+  }
+  for (const k of [normKey(u.pathname + u.search), normKey(u.pathname)]) {
+    const f = (_a = byKey.get(k)) != null ? _a : k === "" ? byKey.get("index") : void 0;
+    if (f) return f;
+  }
+}
+
+const MAX_ROWS = 2e4;
+const TIME = "time";
+const VALUE = "task duration without dev tools (cumulated)";
+const parse = (t) => Papa.parse(t.replace(/^\uFEFF/, ""), { header: true, skipEmptyLines: true });
+const read = (f) => promises.readFile(f, "utf8").catch(() => null);
+const find = (cols, name) => cols.find((c) => c.trim().toLowerCase() === name);
+const csv_get = defineEventHandler(async (event) => {
+  var _a, _b, _c;
   const { path } = getQuery$1(event);
   const { csvDir } = await readConfig();
-  if (!csvDir || typeof path !== "string") {
-    throw createError({ statusCode: 400, statusMessage: "Param\xE8tre manquant" });
-  }
+  if (!csvDir || typeof path !== "string") throw createError({ statusCode: 400, statusMessage: "Param\xE8tre manquant" });
   const root = resolveRoot(csvDir);
   const file = resolve(root, path);
   if (!file.startsWith(root + sep) || !file.toLowerCase().endsWith(".csv")) {
     throw createError({ statusCode: 403, statusMessage: "Chemin refus\xE9" });
   }
-  let text;
-  try {
-    text = (await promises.readFile(file, "utf8")).replace(/^\uFEFF/, "");
-  } catch {
-    throw createError({ statusCode: 404, statusMessage: "Fichier introuvable" });
+  const text = await read(file);
+  if (text === null) throw createError({ statusCode: 404, statusMessage: "Fichier introuvable" });
+  const parsed = parse(text);
+  const columns = (_a = parsed.meta.fields) != null ? _a : [];
+  const urlCol = findUrlColumn(columns, parsed.data);
+  const reportFiles = (await promises.readdir(join(dirname(file), "reports")).catch(() => [])).filter((f) => /\.html$/i.test(f));
+  const byKey = /* @__PURE__ */ new Map();
+  for (const f of reportFiles) {
+    const k = normKey(f.replace(/\.html$/i, ""));
+    if (!byKey.has(k)) byKey.set(k, f);
   }
-  const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-  return {
-    columns: (_a = parsed.meta.fields) != null ? _a : [],
-    rows: parsed.data.slice(0, MAX_ROWS),
-    total: parsed.data.length,
-    truncated: parsed.data.length > MAX_ROWS
-  };
+  let history = null;
+  const histText = await read(file.replace(/\.csv$/i, "_history.csv"));
+  if (histText !== null) {
+    const h = parse(histText);
+    const hc = (_b = h.meta.fields) != null ? _b : [];
+    const hu = findUrlColumn(hc, h.data), ht = find(hc, TIME), hv = find(hc, VALUE);
+    if (hu && ht && hv) {
+      const points = {};
+      for (const r of h.data) {
+        const u = (_c = r[hu]) == null ? void 0 : _c.trim();
+        const v = parseFloat(String(r[hv]).replace(",", "."));
+        if (u && !Number.isNaN(v)) (points[u] || (points[u] = [])).push({ t: r[ht], v });
+      }
+      history = { points };
+    }
+  }
+  const rows = parsed.data.slice(0, MAX_ROWS).map((r) => {
+    const rep = urlCol ? matchReport(r[urlCol], byKey) : void 0;
+    return rep ? { ...r, __report: rep } : r;
+  });
+  return { columns, urlCol, rows, total: parsed.data.length, truncated: parsed.data.length > MAX_ROWS, hasReports: reportFiles.length > 0, history };
 });
 
 const csv_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
@@ -3592,13 +3647,42 @@ const files_get = defineEventHandler(async () => {
   }
   const files = [];
   await walk(root, root, files);
-  files.sort((a, b) => a.path.localeCompare(b.path));
-  return { root, files };
+  const all = new Set(files.map((f) => f.path));
+  const shown = files.filter((f) => !(/_history\.csv$/i.test(f.path) && all.has(f.path.replace(/_history\.csv$/i, ".csv"))));
+  shown.sort((a, b) => a.path.localeCompare(b.path));
+  return { root, files: shown };
 });
 
 const files_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
   default: files_get
+}, Symbol.toStringTag, { value: 'Module' }));
+
+const report_get = defineEventHandler(async (event) => {
+  const { path, file } = getQuery$1(event);
+  const { csvDir } = await readConfig();
+  if (!csvDir || typeof path !== "string" || typeof file !== "string") {
+    throw createError({ statusCode: 400, statusMessage: "Param\xE8tre manquant" });
+  }
+  const root = resolveRoot(csvDir);
+  const reports = join(dirname(resolve(root, path)), "reports");
+  const target = resolve(reports, file);
+  if (!reports.startsWith(root + sep) || !target.startsWith(reports + sep) || !/\.html$/i.test(target)) {
+    throw createError({ statusCode: 403, statusMessage: "Chemin refus\xE9" });
+  }
+  try {
+    const html = await promises.readFile(target);
+    setHeader(event, "content-type", "text/html; charset=utf-8");
+    setHeader(event, "content-security-policy", "sandbox allow-scripts allow-popups allow-popups-to-escape-sandbox");
+    return html;
+  } catch {
+    throw createError({ statusCode: 404, statusMessage: "Rapport introuvable" });
+  }
+});
+
+const report_get$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
+  __proto__: null,
+  default: report_get
 }, Symbol.toStringTag, { value: 'Module' }));
 
 function renderPayloadResponse(ssrContext) {

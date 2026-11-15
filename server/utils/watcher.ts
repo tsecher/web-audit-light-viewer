@@ -11,7 +11,7 @@ const pending = new Set<string>()
 let timer: ReturnType<typeof setTimeout> | null = null
 
 function queue(root: string, file: string) {
-  if (!file.toLowerCase().endsWith('.csv')) return
+  if (!/\.(csv|html)$/i.test(file)) return
   pending.add(relative(root, file))
   if (timer) clearTimeout(timer)
   timer = setTimeout(() => {

@@ -42,6 +42,7 @@ declare global {
   const dynamicEventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').dynamicEventHandler
   const eventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').eventHandler
   const fetchWithEvent: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').fetchWithEvent
+  const findUrlColumn: typeof import('../../server/utils/csvTools').findUrlColumn
   const fromNodeMiddleware: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').fromNodeMiddleware
   const fromPlainHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').fromPlainHandler
   const fromWebHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').fromWebHandler
@@ -82,7 +83,9 @@ declare global {
   const isWebResponse: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').isWebResponse
   const lazyEventHandler: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').lazyEventHandler
   const liveBus: typeof import('../../server/utils/watcher').liveBus
+  const matchReport: typeof import('../../server/utils/csvTools').matchReport
   const nitroPlugin: typeof import('../../node_modules/.pnpm/nitropack@2.13.6_bare-buffer@3.7.1_oxc-parser@0.143.0_srvx@0.11.22_supports-color@10.2._7473a5fc29e9800285546d24130875d1/node_modules/nitropack/dist/runtime/internal/plugin').nitroPlugin
+  const normKey: typeof import('../../server/utils/csvTools').normKey
   const parseCookies: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').parseCookies
   const promisifyNodeListener: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').promisifyNodeListener
   const proxyRequest: typeof import('../../node_modules/.pnpm/h3@1.15.11/node_modules/h3/dist/index').proxyRequest
@@ -153,4 +156,5 @@ export { defineNitroErrorHandler } from 'nitropack/runtime/internal/error/utils'
 export { buildAssetsURL as __buildAssetsURL, publicAssetsURL as __publicAssetsURL } from '/Users/thomassecher/Sites/dev/web-audit/csv-viewer/node_modules/.pnpm/@nuxt+nitro-server@3.21.11_bare-buffer@3.7.1_db0@0.3.4_esbuild@0.28.2_ioredis@5.11.1_su_7d6f0af76f8059d73fa2b3b34ac0e019/node_modules/@nuxt/nitro-server/dist/runtime/utils/paths';
 export { defineAppConfig } from '/Users/thomassecher/Sites/dev/web-audit/csv-viewer/node_modules/.pnpm/@nuxt+nitro-server@3.21.11_bare-buffer@3.7.1_db0@0.3.4_esbuild@0.28.2_ioredis@5.11.1_su_7d6f0af76f8059d73fa2b3b34ac0e019/node_modules/@nuxt/nitro-server/dist/runtime/utils/config';
 export { readConfig, writeConfig, resolveRoot } from '/Users/thomassecher/Sites/dev/web-audit/csv-viewer/server/utils/config';
+export { normKey, findUrlColumn, matchReport } from '/Users/thomassecher/Sites/dev/web-audit/csv-viewer/server/utils/csvTools';
 export { liveBus, watchDir } from '/Users/thomassecher/Sites/dev/web-audit/csv-viewer/server/utils/watcher';
