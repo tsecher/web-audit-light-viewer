@@ -13,13 +13,27 @@ onMounted(() => {
 })
 onBeforeUnmount(() => es?.close())
 
-const groups = computed(() => {
-  const g: Record<string, any[]> = {}
-  for (const f of list.value?.files ?? []) (g[f.dir] ||= []).push(f)
-  return Object.entries(g)
+type TreeItem = { name: string; children: TreeItem[]; files: any[] }
+
+// Construit la hiérarchie à partir du répertoire de chaque fichier (a/b/c -> a > b > c)
+const tree = computed(() => {
+  const root: TreeItem = { name: '', children: [], files: [] }
+  for (const f of list.value?.files ?? []) {
+    let node = root
+    if (f.dir !== '(racine)') {
+      for (const seg of f.dir.split('/')) {
+        let child = node.children.find((n) => n.name === seg)
+        if (!child) {
+          child = { name: seg, children: [], files: [] }
+          node.children.push(child)
+        }
+        node = child
+      }
+    }
+    node.files.push(f)
+  }
+  return root
 })
-const size = (n: number) => (n > 1048576 ? (n / 1048576).toFixed(1) + ' Mo' : Math.max(1, Math.round(n / 1024)) + ' Ko')
-const dup = (files: any[], name: string) => files.filter((x) => x.name === name).length > 1
 </script>
 
 <template>
@@ -30,18 +44,8 @@ const dup = (files: any[], name: string) => files.filter((x) => x.name === name)
     </header>
 
     <nav class="side" aria-label="Fichiers CSV">
-      <p v-if="!groups.length" class="mute">Aucun fichier CSV trouvé.</p>
-      <template v-for="[dir, files] in groups" :key="dir">
-        <h2>{{ dir }}</h2>
-        <button
-          v-for="f in files" :key="f.path" class="file"
-          :aria-current="selected === f.path" :title="f.path"
-          @click="selected = f.path"
-        >
-          <span>{{ f.name }}<small v-if="f.sub && dup(files, f.name)"> ({{ f.sub }})</small></span>
-          <small>{{ size(f.size) }}</small>
-        </button>
-      </template>
+      <p v-if="!list?.files.length" class="mute">Aucun fichier CSV trouvé.</p>
+      <TreeNode v-else :node="tree" :selected="selected" @select="selected = $event" />
     </nav>
 
     <main class="main">
