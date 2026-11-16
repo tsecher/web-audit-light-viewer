@@ -16,7 +16,6 @@ const asc = ref(true)
 const page = ref(0)
 const modal = ref<{ type: 'report' | 'history' | 'details'; url: string; file?: string } | null>(null)
 
-const isUrl = (v: unknown) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(v.trim())
 const urlOf = (r: any) => (data.value?.urlCol ? String(r[data.value.urlCol] ?? '').trim() : '')
 const pointsOf = (r: any) => data.value?.history?.points[urlOf(r)] as { t: string; v: number }[] | undefined
 const rowsOf = (r: any) => data.value?.details?.byUrl[urlOf(r)] as Record<string, string>[] | undefined
@@ -70,10 +69,7 @@ function sortBy(col: string) {
           </thead>
           <tbody>
             <tr v-for="(r, i) in visible" :key="i">
-              <td v-for="c in data.columns" :key="c">
-                <a v-if="isUrl(r[c])" :href="r[c].trim()" target="_blank" rel="noopener noreferrer">{{ r[c] }}</a>
-                <template v-else>{{ r[c] }}</template>
-              </td>
+              <td v-for="c in data.columns" :key="c"><CellValue :value="r[c]" :label="c" /></td>
               <td v-if="data.hasReports">
                 <button v-if="r.__report" class="tab sm" @click="modal = { type: 'report', url: urlOf(r), file: r.__report }">Détail</button>
               </td>

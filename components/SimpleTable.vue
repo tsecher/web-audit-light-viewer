@@ -1,6 +1,5 @@
 <script setup lang="ts">
 defineProps<{ columns: string[]; rows: Record<string, string>[] }>()
-const isUrl = (v: unknown) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(v.trim())
 </script>
 
 <template>
@@ -12,10 +11,7 @@ const isUrl = (v: unknown) => typeof v === 'string' && /^https?:\/\/\S+$/i.test(
       </thead>
       <tbody>
         <tr v-for="(r, i) in rows" :key="i">
-          <td v-for="c in columns" :key="c">
-            <a v-if="isUrl(r[c])" :href="r[c].trim()" target="_blank" rel="noopener noreferrer">{{ r[c] }}</a>
-            <template v-else>{{ r[c] }}</template>
-          </td>
+          <td v-for="c in columns" :key="c"><CellValue :value="r[c]" :label="c" /></td>
         </tr>
       </tbody>
     </table>
