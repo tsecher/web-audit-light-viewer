@@ -33,6 +33,8 @@ const filtered = computed(() => {
   return rows
 })
 const pages = computed(() => Math.max(1, Math.ceil(filtered.value.length / PER_PAGE)))
+// Moyennes calculées sur toutes les lignes filtrées (pas seulement la page affichée)
+const averages = computed(() => columnAverages(data.value?.columns ?? [], filtered.value))
 const visible = computed(() => filtered.value.slice(page.value * PER_PAGE, (page.value + 1) * PER_PAGE))
 
 watch(q, () => (page.value = 0))
@@ -81,6 +83,16 @@ function sortBy(col: string) {
               </td>
             </tr>
           </tbody>
+          <tfoot v-if="filtered.length">
+            <tr>
+              <td v-for="c in data.columns" :key="c">
+                <template v-if="averages[c]"><span class="avg-l">moy.</span> {{ averages[c] }}</template>
+              </td>
+              <td v-if="data.hasReports" />
+              <td v-if="data.history" />
+              <td v-if="data.details" />
+            </tr>
+          </tfoot>
         </table>
       </div>
       <div class="bar" v-if="pages > 1">

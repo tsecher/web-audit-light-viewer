@@ -1,5 +1,6 @@
 <script setup lang="ts">
-defineProps<{ columns: string[]; rows: Record<string, string>[] }>()
+const props = defineProps<{ columns: string[]; rows: Record<string, string>[] }>()
+const averages = computed(() => columnAverages(props.columns, props.rows))
 </script>
 
 <template>
@@ -14,6 +15,13 @@ defineProps<{ columns: string[]; rows: Record<string, string>[] }>()
           <td v-for="c in columns" :key="c"><CellValue :value="r[c]" :label="c" /></td>
         </tr>
       </tbody>
+      <tfoot>
+        <tr>
+          <td v-for="c in columns" :key="c">
+            <template v-if="averages[c]"><span class="avg-l">moy.</span> {{ averages[c] }}</template>
+          </td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 </template>
